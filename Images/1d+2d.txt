@@ -1,0 +1,2 @@
+Maximum: 95
+Average: 53.52
