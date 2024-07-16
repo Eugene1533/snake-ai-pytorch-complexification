@@ -5,12 +5,97 @@ Training a relatively big neural network that has enough capacity for complex ta
 Training a model on examples of increasing difficulty, progressively providing more challenging data or tasks as the policy improves, is called _Curriculum Learning_. As the name suggests, the idea behind the approach borrows from human education, where complex tasks are taught by breaking them into simpler parts. Another related approach is called _Progressive Neural Networks_. A progressive network is composed of multiple columns, and each column is a policy network for one specific task. It starts with one single column for training the first task, and then the number of columns increases with the number of new tasks. While training on a new task, neuron weights of the previous columns are frozen and representations from those frozen tasks are applied to the new column via a collateral connection to assist in learning the new task. Also the idea of _Distillation Model_ involves training a smaller model first and then building a big one that will imitate the first one in order to kick start the large model’s learning progress. In spite of some similarities, the suggested approach unlike others uses successive allocation of the network capacity for a current single task through increasing the perception field, i.e. the state space.
 
 ## Complexification through weight loading
-In order to reproduce the experiments run a file agent_1d.py. Enum Train_mode defines 3 possible scenarios. The mode input_values_11 involves feeding the snake with an input vector of 11 parameters that are relative to its head’s position. It takes approximately 100 games to converge and the average result is about 35 scores.
+In order to reproduce the experiments run a file agent_1d.py. Enum Train_mode defines 3 possible scenarios. The mode input_values_11 involves feeding the snake with an input vector of 11 parameters that are relative to its head’s position. It takes approximately 100 games to converge and the average result is about 35 scores:
 
 <p align="center">
   <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/0bc5cb9c-3909-415f-be99-b1ad4ac921ad" width="450"/>
 </p>
 
+The analysis of the way the snake ends up shows that it tends to coil in itself:
+
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/63912fd4-63bc-4e33-ac39-6c57a6c4335d" width="370"/>
+</p>
+
+That situation is supposedly attributable to the inability of the snake to get understanding of the location of its own parts. If we choose input_values_19 mode, we increase the input vector by adding the following parameters:
+-	snake tail to the right of the head;
+-	snake tail to the left of the head;
+-	snake tail to the front of the head;
+-	relative distance to the right wall;
+-	relative distance to the left wall;
+-	relative distance to the front wall;
+-	last turn left;
+-	last turn right.
+Now it takes approximately 150 games to converge and the average result is about 62:
+
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/1035be08-61fc-43d5-93f2-ee0a4780b486" width="450"/>
+</p>
+
+If we want to start the learning process of a model with a bigger input vector not from scratch, but with weights of a smaller one, the procedure in this case is straightforward. For the current network architecture it requires copying of the weights of the second fully connected layer (FC 2) and the weights of the first fully connected layer (FC 1) concatenated with a tensor of random values of shape (8, 256) in order to fit the new formed FC 2 layer. The number of input and output features of each layer is specified in parenthesis:
+
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/0fd87eeb-8298-4363-b172-6317557d1d75" width="670"/>
+</p>
+
+It corresponds to weight_loading mode and demonstrates that with prior knowledge it takes approximately 50 games to converge to even better scores in comparison with the experiment of a previous mode, which is about 3 times less in terms of count of games:
+
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/b9547828-0f19-4d83-89e6-295245118a6d" width="450"/>
+</p>
+
+Due to the nature of neural networks, they can rely only on known part of the input vector, performing rational activity in terms of the environment and simultaneously figuring out the way of applying newly added part of the input vector. It’s important to note that it doesn’t require any initial exploration as it were in both cases with a smaller and bigger vectors starting from scratch. But it seems that in more complicated scenarios a way of exploring possibilities that come with added input vector might be required.
+
+## Complexification through head involvement
+The next step is to add a convolutional (2d) head to the neural network that will partially observe the environment – file agent_1d_2d.py. For this case a bit different approach will be demonstrated, which involves turning of some advanced parts of the neural network, like the convolutional head in this example, while training the initial smaller parts. In essence, this process is similar to training a smaller neural network and loading its weights into a correspondent part of a bigger one. In order to make it easier for the agent to learn, the convolutional head is provided not with the full environment, but with black and white cropped fragment of shape (8, 8) around snake’s head, rotated according to its current direction:
+
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/7b72cb2b-2873-4788-9940-317acb0730cc" width="670"/>
+</p>
+
+Architecture of the neural network (without ReLU layers) is presented on consists of two heads:
+
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/96586dc7-44b0-42fa-96f1-f81ed5648049" width="550"/>
+</p>
+
+There are several sequential stages of training. During a “Zeros” stage the output of the convolutional head is always a tensor of zeros and the head is frozen. In this case the agent is supposed to rely only on the 1d head. A “Noise” stage involves processing the image by the frozen convolutional head with randomly initialized weights. The absence of any structured useful information about the environment from 2d head supposedly will make the rest of the network insensitive to any information from that head. The initial intent of that is to prevent possible sporadic behavior of the network on the transition between the previous stage and involving the 2d head, when the network has been trained with the constant tensor of only zeros and it unexpectedly gets a tensor of random values. An “Involving” stage implies freezing the 1d head and unfreezing the 2d head in order to provide some prior knowledge and kick start the learning process of 2d head. A “Both heads” stage involves simultaneous training of both 1d and 2d heads.
+	A set of experiments has been conducted in order to practically evaluate performance, depending on redistribution of the entire amount of 3000 games between different stages using fixed hyperparameters. Every experiment the agent uses epsilon-greedy strategy during first 280 games and then the greedy one. The first experiment involves training the agent during all of the episodes (games) using a “Zeros” stage, which means it effectively uses only 1d head (“just_1d” configuration in the code):
+
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/875a3e9b-06c2-4a4b-9fbb-27df34a3c88c" width="450"/>
+</p>
+
+Unsurprisingly, the result doesn’t seem much different from Fig. 2. It has the average score of 33 over 100 last games. The network just learns to ignore a tensor of zeros from the 2d head and rely only on 1d part that uses 11 values, the same as in case on Figure 2. It’s necessary to mention that in spite of pretty stable average score, the dispersion of scores for each game (blue color) is pretty high.
+The second experiment involves training the agent during all of the episodes using the “Both heads” stage, which means it uses both heads from the beginning (“combined” configuration in the code):
+
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/224661cb-b825-4bb0-9c29-ca339b690e6c" width="450"/>
+</p>
+
+It has the average score of 36 over 100 last games. The result is not far from the previous experiment, which means that the network isn’t able to utilize data from the 2d head, “turned that head off”, and still relies only on 1d head as in the case with “Zeros” stage.
+The third experiment involves training the agent on 500 games using “Zeros” stage and 2500 games using “Both heads” stage (“1d+2d” configuration in the code):
+
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/60864637-9297-4144-994f-699f92398bba" width="450"/>
+</p>
+
+In this case during the first stage the network learns how to utilize the 1d head and then, with its weights trained, involves the second one in the training process. The average score over 100 last games is 54, which is better than in the previous cases. The important point here is that such a score can’t be achieved by training of two heads simultaneously. The forth experiment involves training the agent on 500 games using “Zeros” stage, 1000 games using “Involving” stage, and 1500 games using “Both heads” stage (“1d+involving+2d” configuration in the code):
+
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/fe08d442-0ab6-47e5-9cfa-b411f64c3c65" width="450"/>
+</p>
+
+The final average score is 54 and is the same as in the previous experiment, which means that using “Involving” stage doesn’t improve the results. The fifth experiment involves training the agent on 500 games using “Zeros” stage, 500 games using “Noise” stage, 500 games using “Involving” stage, and 1500 games using “Both heads” stage (“1d+noise+involving+2d” configuration in the code):
+
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/db3e0a49-ff3c-44dc-a9d1-6766bb7b0122" width="450"/>
+</p>
+
+Here also the final average score of 52 doesn’t deviate too much from the third experiment, which means that using “Involving” stage also doesn’t improve the results.
+
+## Conclusions
+This work is based on considering a pretty trivial example of the Snake game and describes the process of using weights of a previously trained network as prior knowledge for a more complicated one. It was shown that the suggested approach provides a way of achieving higher score without any hyperparamenter search in comparison with the case of training a complexified network from scratch. Future work requires conducting a more extensive set of experiments, including different environments and RL algorithms for getting conclusive information about applicability of the approach. It’s necessary to consider different possible dimensions of increasing complexity, not only what’s directly connected with a receptive filed, i.e. a state vector. It seems that in this particular case of the Snake game we can use not a single current state of the game, but also several previous states and gradually add some recurrent part to the network. It also seems that a sense of feeling a distance of food, not just direction of that, may also improve results. In this case it requires a gradual transition from a Boolean value to a value between 0 and 1. Future research can also be dedicated to automatic finding the necessary directions of extending the network capacity, unlike it was done manually in the current work.
 
 
 
