@@ -116,7 +116,7 @@ class Agent:
         dir_right = game.direction == Direction.RIGHT
         dir_up = game.direction == Direction.UP
         dir_down = game.direction == Direction.DOWN
-    
+        
         # elemetns to the right of the head in absolute coordinates
         elements_to_the_right_abs = any(map(lambda pt: pt.x > head.x and pt.y == head.y, game.snake))
         
