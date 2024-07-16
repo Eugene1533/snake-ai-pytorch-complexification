@@ -7,6 +7,9 @@ Training a model on examples of increasing difficulty, progressively providing m
 ## Complexification through weight loading
 In order to reproduce the experiments run a file agent_1d.py. Enum Train_mode defines 3 possible scenarios. The mode input_values_11 involves feeding the snake with an input vector of 11 parameters that are relative to its head’s position. It takes approximately 100 games to converge and the average result is about 35 scores.
 
+<p align="center">
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/1035be08-61fc-43d5-93f2-ee0a4780b486" width="450/>
+</p>
 
 
 
