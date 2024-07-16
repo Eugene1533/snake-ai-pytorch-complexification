@@ -26,6 +26,7 @@ That situation is supposedly attributable to the inability of the snake to get u
 -	relative distance to the front wall;
 -	last turn left;
 -	last turn right.
+
 Now it takes approximately 150 games to converge and the average result is about 62:
 
 <p align="center">
