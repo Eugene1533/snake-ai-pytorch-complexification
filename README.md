@@ -127,15 +127,28 @@ The suggested mechanism of complexification through reward shaping involves usag
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/d7980b2c-c36b-47ba-978c-ec0c020826ec" width="450"/>
+  <img src="https://github.com/user-attachments/assets/d7980b2c-c36b-47ba-978c-ec0c020826ec" width="650"/>
 </p>
 
+The result of training when reward is a maximum value of a Q-function for a given state form a smaller network is the following (second_level_network_reward_shaping mode):
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a3695d45-9d68-425f-aba0-9d440148855d" width="450"/>
+</p>
 
+The result of training with an equal contribution of a real reward and a maximum Q-function for a given state form a smaller network is the following:
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/cdb89c15-1ea4-4fe8-a0e0-defad5d21d4e" width="450"/>
+</p>
+
+The same experiment but with longer exploration phase looks like:
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/c3d3426e-6ea0-4dce-9293-b4777dda7a4d" width="450"/>
+</p>
+
+It has an average score about 50 which is better in comparison with the case with just using 11 values. So the result of a bigger network trained using some reward function provided by the smaller network is better than the result of the smaller network in that environment, which is connected with richer state space in this particular case. And more importantly, the bigger network doesn’t converge at all without using such a gimmick. It also sees reasonable to shift the reward from a smaller network to the real one from the environment over time of training the bigger network and further research can be dedicated to that, as well as to using a chain of successively trained networks where each previous one provides reward construction for the next one.
 
 ## Conclusions
 This work is based on considering a pretty trivial example of the Snake game and describes the process of using weights of a previously trained network as prior knowledge for a more complicated one. It was shown that the suggested approach provides a way of achieving higher score without any hyperparamenter search in comparison with the case of training a complexified network from scratch. Future work requires conducting a more extensive set of experiments, including different environments and RL algorithms for getting conclusive information about applicability of the approach. It’s necessary to consider different possible dimensions of increasing complexity, not only what’s directly connected with a receptive filed, i.e. a state vector. It seems that in this particular case of the Snake game we can use not a single current state of the game, but also several previous states and gradually add some recurrent part to the network. It also seems that a sense of feeling a distance of food, not just direction of that, may also improve results. In this case it requires a gradual transition from a Boolean value to a value between 0 and 1. Future research can also be dedicated to automatic finding the necessary directions of extending the network capacity, unlike it was done manually in the current work.
-
-
-
