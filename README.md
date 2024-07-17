@@ -95,6 +95,41 @@ The final average score is 54 and is the same as in the previous experiment, whi
 
 Here also the final average score of 52 doesn’t deviate too much from the third experiment, which means that using “Involving” stage also doesn’t improve the results.
 
+## Complexification through reward shaping
+Transition from a simpler neural network to a more complicated one can also be conducted through reward shaping. The set of corresponding experiments is presented in the file agent_reward_shaping.py. In the first experiment (second_level_network_from_scratch mode) the network is provided with the entire game screen rotated relatively to its head:
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/32a3af7e-32f1-42c0-94da-abae02f6071a" width="450"/>
+</p>
+
+The network has the following architecture:
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/c23feaf2-a50c-4cf2-97b4-f4dd5de2b167" width="550"/>
+</p>
+
+And it demonstrates the following result using epsilon-greedy strategy for exploration during first 5000 games:
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/511c4ec1-f18a-4e3e-b61a-d8810969933b" width="450"/>
+</p>
+
+As it’s shown, with the established set of hyperparameters, the network doesn’t converge at all. At the same time, the approach that has been described earlier, of using liner layer with the manually constructed 11 values demonstrates the following result in this case (primodial_network_training mode), with an average score about 40:
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/dae402ba-4a01-4d9b-9d80-a6b507eaa2f2" width="450"/>
+</p>
+
+The suggested mechanism of complexification through reward shaping involves usage of predicted value function from a smaller neural network trained during the first stage in the same environment as a part of reward for a more complicated one:
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/1adf388a-b86b-4543-a563-f18c9a4899a2" width="450"/>
+</p>
+
+
+
+
+
 ## Conclusions
 This work is based on considering a pretty trivial example of the Snake game and describes the process of using weights of a previously trained network as prior knowledge for a more complicated one. It was shown that the suggested approach provides a way of achieving higher score without any hyperparamenter search in comparison with the case of training a complexified network from scratch. Future work requires conducting a more extensive set of experiments, including different environments and RL algorithms for getting conclusive information about applicability of the approach. It’s necessary to consider different possible dimensions of increasing complexity, not only what’s directly connected with a receptive filed, i.e. a state vector. It seems that in this particular case of the Snake game we can use not a single current state of the game, but also several previous states and gradually add some recurrent part to the network. It also seems that a sense of feeling a distance of food, not just direction of that, may also improve results. In this case it requires a gradual transition from a Boolean value to a value between 0 and 1. Future research can also be dedicated to automatic finding the necessary directions of extending the network capacity, unlike it was done manually in the current work.
 
