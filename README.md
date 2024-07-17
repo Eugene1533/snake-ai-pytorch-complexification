@@ -123,7 +123,7 @@ As itâ€™s shown, with the established set of hyperparameters, the network doesnâ
 The suggested mechanism of complexification through reward shaping involves usage of predicted value function from a smaller neural network trained during the first stage in the same environment as a part of reward for a more complicated one:
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/1adf388a-b86b-4543-a563-f18c9a4899a2" width="450"/>
+  <img src="https://github.com/user-attachments/assets/d7980b2c-c36b-47ba-978c-ec0c020826ec" width="450"/>
 </p>
 
 
