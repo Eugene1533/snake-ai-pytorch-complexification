@@ -15,7 +15,7 @@ In order to reproduce the experiments run a file agent_1d.py. Enum Train_mode de
 The analysis of the way the snake ends up shows that it tends to coil in itself:
 
 <p align="center">
-  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/63912fd4-63bc-4e33-ac39-6c57a6c4335d" width="370"/>
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/63912fd4-63bc-4e33-ac39-6c57a6c4335d" width="350"/>
 </p>
 
 That situation is supposedly attributable to the inability of the snake to get understanding of the location of its own parts. If we choose input_values_19 mode, we increase the input vector by adding the following parameters:
@@ -52,13 +52,13 @@ Due to the nature of neural networks, they can rely only on known part of the in
 The next step is to add a convolutional (2d) head to the neural network that will partially observe the environment – file agent_1d_2d.py. For this case a bit different approach will be demonstrated, which involves turning of some advanced parts of the neural network, like the convolutional head in this example, while training the initial smaller parts. In essence, this process is similar to training a smaller neural network and loading its weights into a correspondent part of a bigger one. In order to make it easier for the agent to learn, the convolutional head is provided not with the full environment, but with black and white cropped fragment of shape (8, 8) around snake’s head, rotated according to its current direction:
 
 <p align="center">
-  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/7b72cb2b-2873-4788-9940-317acb0730cc" width="670"/>
+  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/7b72cb2b-2873-4788-9940-317acb0730cc" width="570"/>
 </p>
 
 Architecture of the neural network (without ReLU layers) is presented on consists of two heads:
 
 <p align="center">
-  <img src="https://github.com/Eugene1533/snake-ai-pytorch-complexification/assets/174684744/96586dc7-44b0-42fa-96f1-f81ed5648049" width="550"/>
+  <img src="https://github.com/user-attachments/assets/c3f5a343-bd5f-417d-8965-97cecb22a66b" width="550"/>
 </p>
 
 There are several sequential stages of training. During a “Zeros” stage the output of the convolutional head is always a tensor of zeros and the head is frozen. In this case the agent is supposed to rely only on the 1d head. A “Noise” stage involves processing the image by the frozen convolutional head with randomly initialized weights. The absence of any structured useful information about the environment from 2d head supposedly will make the rest of the network insensitive to any information from that head. The initial intent of that is to prevent possible sporadic behavior of the network on the transition between the previous stage and involving the 2d head, when the network has been trained with the constant tensor of only zeros and it unexpectedly gets a tensor of random values. An “Involving” stage implies freezing the 1d head and unfreezing the 2d head in order to provide some prior knowledge and kick start the learning process of 2d head. A “Both heads” stage involves simultaneous training of both 1d and 2d heads.
@@ -100,13 +100,13 @@ Here also the final average score of 52 doesn’t deviate too much from the thir
 Transition from a simpler neural network to a more complicated one can also be conducted through reward shaping. The set of corresponding experiments is presented in the file agent_reward_shaping.py. In the first experiment (second_level_network_from_scratch mode) the network is provided with the entire game screen rotated relatively to its head:
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/32a3af7e-32f1-42c0-94da-abae02f6071a" width="450"/>
+  <img src="https://github.com/user-attachments/assets/32a3af7e-32f1-42c0-94da-abae02f6071a" width="370"/>
 </p>
 
 The network has the following architecture:
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/c23feaf2-a50c-4cf2-97b4-f4dd5de2b167" width="550"/>
+  <img src="https://github.com/user-attachments/assets/c23feaf2-a50c-4cf2-97b4-f4dd5de2b167" width="450"/>
 </p>
 
 And it demonstrates the following result using epsilon-greedy strategy for exploration during first 5000 games:
