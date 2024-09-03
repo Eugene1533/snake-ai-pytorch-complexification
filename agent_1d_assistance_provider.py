@@ -4,7 +4,7 @@ import numpy as np
 from collections import deque
 from game import SnakeGameAI, Direction, Point
 from model_1d import Linear_QNet, QTrainer
-from model_2d import Model2d, QTrainer_2d, Train_mode
+from model_2d import Model2d, QTrainer_2d
 from helper import plot_everything
 import os
 from enum import Enum
