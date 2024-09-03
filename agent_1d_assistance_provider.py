@@ -11,14 +11,15 @@ from enum import Enum
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 from itertools import islice
 import cv2
+import itertools
 
 # getting the current device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# how often the model will be provided with assistens vs training on its own
 assistance_rate = 2
 
 TargetTrainer = QTrainer_2d
-
 # creating named windows
 cv2.namedWindow('Snake', cv2.WINDOW_NORMAL)
 cv2.namedWindow('Snake rotated', cv2.WINDOW_NORMAL)
@@ -26,14 +27,11 @@ cv2.namedWindow('Big', cv2.WINDOW_NORMAL)
 cv2.namedWindow('Head crop', cv2.WINDOW_NORMAL)
 
 # rewrite best small model
-rewrite_small_model = False
-
-# rewrite best cortisol model
-rewrite_cortisiol_model = True
+rewrite_big_model = False
 
 # maximum size of replay memory
 # The aim of replay memory is to reduce correlation between consequtive steps in short memory
-MAX_REPLAY_MEMORY = 100_0000
+MAX_REPLAY_MEMORY = 100_000
 
 # batch size for learning
 BATCH_SIZE = 32
@@ -47,10 +45,9 @@ small_model = Linear_QNet(19, 256, 3).to(device)
 # cotisol model
 model_2d = Model2d(34848).to(device)
 
-# if we're in the mode that implies involvement after training - load the existing model
+# load the existing model - just a model that takes 19 values
 model_state_dict = torch.load("model/model_small_cortisol.pth")
 small_model.load_state_dict(model_state_dict)
-
 
 class Agent:
     """Agent class"""
@@ -75,9 +72,7 @@ class Agent:
         
         self.steps_without_real_future_reward = 0
         
-        # !!! we train the cortisol model !!!
         self.trainer = TargetTrainer(model_2d, lr=LR, gamma=self.gamma)
-        
 #-------------------------------------------------------------------------------
     def get_state(self, game):
         """Get state - 11 booleans based on the game"""
@@ -574,7 +569,6 @@ class Agent:
             state = state.to(device)
             state = torch.unsqueeze(state, 0)
             state = torch.unsqueeze(state, 0)
-            
 
             prediction = self.model_1d(state)
             
@@ -583,10 +577,6 @@ class Agent:
             
             # setting one into that number
             returned_move[move] = 1
-            
-            # max_prediction = torch.max(prediction)
-            
-            # average_prediction = torch.mean(prediction)
 
         return returned_move
 #-------------------------------------------------------------------------------
@@ -596,8 +586,8 @@ class Agent:
         # random moves: tradeoff exploration / exploitation
         # defining epsilon
         
-        first_border = 1800
-        second_border = 4000
+        first_border = 5000
+        second_border = 9000
         
         self.epsilon = first_border - (self.game_counter) # - 300
         
@@ -618,7 +608,6 @@ class Agent:
             state = torch.unsqueeze(state, 0)
             state = torch.unsqueeze(state, 0)
             
-
             prediction = self.model_2d(state)
             
             # taking an action with the maximum probability
@@ -626,10 +615,6 @@ class Agent:
             
             # setting one into that number
             returned_move[move] = 1
-            
-            # max_prediction = torch.max(prediction)
-            
-            # average_prediction = torch.mean(prediction)
 
         return returned_move
 #-------------------------------------------------------------------------------
@@ -670,10 +655,11 @@ def train():
             
             # taking next move from the 2d model - that's being trained
             next_move = agent.get_action_2d(current_state_2d)
+            
         else:
             # using assisatance
             next_move = agent.get_action_1d(current_state) # , cortizol, max_prediction, avrg_prediction
-
+        
         # right turn
         if (np.array_equal(next_move, [0, 1, 0])):
             game.last_turn_right = True
@@ -692,7 +678,7 @@ def train():
         # train short memory
         agent.train_short_memory(current_state, current_state_2d, next_move, reward, state_new, state_new_2d, done)
 
-        # remember - here we don't know yet the future reward
+        # remember
         agent.remember_in_replay_memory(current_state, current_state_2d, next_move, reward, state_new, state_new_2d, done)
         
         # if we finished the game
@@ -711,10 +697,14 @@ def train():
 
             # if we reached the better score being in the state of training a small model
             if score > record_score and counter_of_assistnce_steps == assistance_rate:
+                
                 # saving the best record score
                 record_score = score
-                agent.model_1d.save('model_small_cortisol.pth')
-
+                
+                # if we should also rewrite
+                if rewrite_big_model:
+                    agent.model_1d.save('model_assistance_provider.pth')
+            
             # printing the information
             print('Game', agent.game_counter, 'Score', score, 'Record:', record_score)
 
@@ -722,7 +712,12 @@ def train():
             
             # get an action from a model
             if counter_of_assistnce_steps == assistance_rate:   
-                scores_for_plotting.append(score)          
+                
+                # append assistance_rate times
+                for _ in itertools.repeat(None, assistance_rate):
+                    scores_for_plotting.append(score)
+
+
                 # discarding the counter
                 counter_of_assistnce_steps = 0
             
@@ -738,13 +733,14 @@ def train():
                 
                 sum_of_scores = sum(last_values)
                 mean_score = sum_of_scores / len(last_values)
-                mean_scores_for_plotting.append(mean_score)
+
+                # append assistance_rate times
+                for _ in itertools.repeat(None, assistance_rate):
+                    mean_scores_for_plotting.append(mean_score)
                 
                 # plotting everything
                 plot_everything(scores_for_plotting, mean_scores_for_plotting)
             
-            if  agent.game_counter == 3000:
-                print("That's enough...")
                 
             counter_of_assistnce_steps +=1
 
