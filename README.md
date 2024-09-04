@@ -160,6 +160,8 @@ In the previous case the bigger network acted in the environment but it was rewa
 
 The agent is switching between the aforementioned way of training and training on its own in order to assess its performance. The result of training is worse than the previous one:
 
+![](Images/reward assistance mechanism.JPG)
+
 <p align="center">
   <img src="https://private-user-images.githubusercontent.com/174684744/363873900-832a3887-a3d0-4dbf-8093-eee60b73a623.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjUzNzA0MDMsIm5iZiI6MTcyNTM3MDEwMywicGF0aCI6Ii8xNzQ2ODQ3NDQvMzYzODczOTAwLTgzMmEzODg3LWEzZDAtNGRiZi04MDkzLWVlZTYwYjczYTYyMy5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQwOTAzJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MDkwM1QxMzI4MjNaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1lNmI0MGQ0ZTI1MjI0MDM0ODk3NDI0NTMwYjQ1NDlkNzA2MGFlN2MzNmQ0Yzc3YmQ4YzhlZDc2NTcyMjc4YzlhJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZhY3Rvcl9pZD0wJmtleV9pZD0wJnJlcG9faWQ9MCJ9.sJZjSmzkhVUMKrJemwEKD5j7-s3LBskOGpTIdxbiG8I" width="450"/>
 </p>
